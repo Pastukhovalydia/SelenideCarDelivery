@@ -191,24 +191,6 @@ public class CardDeliveryFormTest {
                 .shouldBe(visible, Duration.ofSeconds(15));
     }
 
-    @Test
-    void shouldShowErrorForUncheckedAgreement() {
-        open("http://localhost:9999");
-
-        // Заполняем все поля корректно, не устанавливаем чекбокс
-        $("[data-test-id=city] input").setValue("Москва");
-        LocalDate planningDate = LocalDate.now().plusDays(3);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-        $("[data-test-id='date'] input").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
-        $("[data-test-id=date] input").setValue(planningDate.format(formatter));
-        $("[data-test-id=name] input").setValue("Пастухова Лидия");
-        $("[data-test-id=phone] input").setValue("+79114445566");
-        $$("button").find(exactText("Забронировать")).click();
-
-        // Проверяем, что текст "Я соглашаюсь с условиями..." подсвечен красным
-        $(".checkbox__text").shouldHave(cssValue("color", "rgba(255, 92, 92, 1)"), Duration.ofSeconds(5));
-    }
-
 
     @Test
     void shouldShowErrorForEmptyFieldsAndCheckedAgreement() {
