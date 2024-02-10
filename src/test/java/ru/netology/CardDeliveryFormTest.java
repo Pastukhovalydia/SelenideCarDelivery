@@ -60,6 +60,7 @@ public class CardDeliveryFormTest {
         open("http://localhost:9999");
 
         // Оставляем поле "Город" пустым
+        $("[data-test-id=city] input").setValue("");
         $("[data-test-id='date'] input").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
         $("[data-test-id=date] input").setValue(LocalDate.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
         $("[data-test-id=name] input").setValue("Пастухова Лидия");
@@ -76,18 +77,19 @@ public class CardDeliveryFormTest {
     void shouldShowErrorForEmptyNameWithOtherFieldsFilledCorrectly() {
         open("http://localhost:9999");
 
-        // Оставляем поле "Фамилия и Имя" пустым, заполняем остальные поля корректно и устанавливаем чекбокс
+        // Поле Фамилия и Имя на латинице
         $("[data-test-id=city] input").setValue("Москва");
         LocalDate planningDate = LocalDate.now().plusDays(3);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         $("[data-test-id='date'] input").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
         $("[data-test-id=date] input").setValue(planningDate.format(formatter));
+        $("[data-test-id=name] input").setValue("Gena");
         $("[data-test-id=phone] input").setValue("+79114445566");
         $("[data-test-id=agreement]").click();
         $$("button").find(exactText("Забронировать")).click();
 
         // Проверяем сообщение
-        $(withText("Поле обязательно для заполнения"))
+        $(withText("Имя и Фамилия указаные неверно. Допустимы только русские буквы, пробелы и дефисы."))
                 .shouldBe(visible, Duration.ofSeconds(15));
     }
 
@@ -115,9 +117,19 @@ public class CardDeliveryFormTest {
     void shouldShowErrorForUnavailableCity() {
         open("http://localhost:9999");
 
-        // Указываем город за пределами РФ, устанавливаем чекбокс
+        // Указываем город за пределами РФ , заполняем остальные поля корректно и устанавливаем чекбокс
         $("[data-test-id=city] input").setValue("Астана");
+        LocalDate planningDate = LocalDate.now().plusDays(3);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        $("[data-test-id='date'] input").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
+        $("[data-test-id=date] input").setValue(planningDate.format(formatter));
+        $("[data-test-id=name] input").setValue("Пастухова Лидия");
+        $("[data-test-id=phone] input").setValue("+79114445566");
+
+        // Устанавливаем чекбокс
         $("[data-test-id=agreement]").click();
+
+        // Нажимаем кнопку "Забронировать"
         $$("button").find(exactText("Забронировать")).click();
 
         // Проверяем сообщение
@@ -125,12 +137,26 @@ public class CardDeliveryFormTest {
                 .shouldBe(visible, Duration.ofSeconds(15));
     }
 
+
     @Test
     void shouldShowErrorForEmptyNameWithCheckedAgreement() {
         open("http://localhost:9999");
 
-        // Оставляем поле "Фамилия и Имя" пустым, устанавливаем чекбокс
+        // Заполняем все поля, кроме Фамилии и Имени
+        $("[data-test-id=city] input").setValue("Москва");
+        LocalDate planningDate = LocalDate.now().plusDays(3);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        $("[data-test-id='date'] input").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
+        $("[data-test-id=date] input").setValue(planningDate.format(formatter));
+        $("[data-test-id=phone] input").setValue("+79114445566");
+
+        // Оставляем поле Фамилии и Имени пустым
+        $("[data-test-id=name] input").setValue("");
+
+        // Устанавливаем чекбокс
         $("[data-test-id=agreement]").click();
+
+        // Нажимаем кнопку "Забронировать"
         $$("button").find(exactText("Забронировать")).click();
 
         // Проверяем сообщение
@@ -143,15 +169,27 @@ public class CardDeliveryFormTest {
     void shouldShowErrorForEmptyPhoneWithCheckedAgreement() {
         open("http://localhost:9999");
 
-        // Оставляем поле "Телефон" пустым, устанавливаем чекбокс
+        // Заполняем все поля, кроме телефона
+        $("[data-test-id=city] input").setValue("Москва");
+        LocalDate planningDate = LocalDate.now().plusDays(3);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        $("[data-test-id='date'] input").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
+        $("[data-test-id=date] input").setValue(planningDate.format(formatter));
+        $("[data-test-id=name] input").setValue("Пастухова Лидия");
+
+        // Оставляем поле телефона пустым
+        $("[data-test-id=phone] input").setValue("");
+
+        // Устанавливаем чекбокс
         $("[data-test-id=agreement]").click();
+
+        // Нажимаем кнопку "Забронировать"
         $$("button").find(exactText("Забронировать")).click();
 
         // Проверяем сообщение
         $(withText("Поле обязательно для заполнения"))
                 .shouldBe(visible, Duration.ofSeconds(15));
     }
-
 
     @Test
     void shouldShowErrorForUncheckedAgreement() {
@@ -169,6 +207,55 @@ public class CardDeliveryFormTest {
 
         // Проверяем, что текст "Я соглашаюсь с условиями..." подсвечен красным
         $(".checkbox__text").shouldHave(cssValue("color", "rgba(255, 92, 92, 1)"), Duration.ofSeconds(5));
+    }
+
+
+    @Test
+    void shouldShowErrorForEmptyFieldsAndCheckedAgreement() {
+        open("http://localhost:9999");
+
+        // Не заполняем обязательные поля
+        $("[data-test-id=city] input").setValue("");
+
+        // Очищаем поле с датой
+        $("[data-test-id='date'] input").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
+
+        $("[data-test-id=name] input").setValue("");
+        $("[data-test-id=phone] input").setValue("");
+
+        // Устанавливаем чекбокс
+        $("[data-test-id=agreement]").click();
+
+        // Нажимаем кнопку "Забронировать"
+        $$("button").find(exactText("Забронировать")).click();
+
+        // Проверяем сообщение
+        $(withText("Поле обязательно для заполнения"))
+                .shouldBe(visible, Duration.ofSeconds(15));
+    }
+
+    @Test
+    void shouldShowErrorForEmptyDate() {
+        open("http://localhost:9999");
+
+        // Заполняем все поля, кроме поля"Дата"
+        $("[data-test-id=city] input").setValue("Москва");
+        LocalDate planningDate = LocalDate.now().plusDays(3);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        $("[data-test-id='date'] input").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
+        $("[data-test-id=date] input").setValue(""); // Очищаем поле "Дата"
+        $("[data-test-id=name] input").setValue("Пастухова Лидия");
+        $("[data-test-id=phone] input").setValue("+79114445566");
+
+        // Устанавливаем чекбокс
+        $("[data-test-id=agreement]").click();
+
+        // Нажимаем кнопку "Забронировать"
+        $$("button").find(exactText("Забронировать")).click();
+
+        // Проверяем сообщение
+        $(withText("Неверно введена дата"))
+                .shouldBe(visible, Duration.ofSeconds(15));
     }
 
 }
